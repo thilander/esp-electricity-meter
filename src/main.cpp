@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include <PubSubClient.h>
 #include <Credentials.h>
 
@@ -21,7 +20,6 @@ String latestDateTime;
 String latestMeterReading;
 String latestActivePower;
 
-ESP8266WebServer server(80);
 const char *mqtt_broker = MQTT_HOST;
 const char *mqtt_user = MQTT_USER;
 const char *mqtt_pass = MQTT_PW;
@@ -72,11 +70,6 @@ void setup() {
     }
   }
 
-  server.on("/", handleRoot);
-  server.on("/raw", handleRaw);
-  server.on("/ap", handleActivePower);
-  server.begin();
-
   ArduinoOTA.begin();
 }
 
@@ -95,28 +88,11 @@ void loop() {
     client.publish(mqtt_topic_mr, latestMeterReading.c_str());
     client.publish(mqtt_topic_ap, latestActivePower.c_str());
   }
-  server.handleClient();
 
   millisSinceStart = millis();
   if (millisSinceStart > millisUntilReset) {
     ESP.restart();
   }
-}
-
-void handleRoot() {
-  String result = "{\"time\":" + latestDateTime + ",\"meterReading\":" + latestMeterReading + ",\"activePower\":" + latestActivePower + "}";
-  server.send(200, "application/json", result);
-}
-
-void handleRaw() {
-  server.send(200, "text/plain", latestTelegram);
-}
-
-void handleMeterReading() {
-}
-
-void handleActivePower() {
-  server.send(200, "text/plain", latestActivePower + "kW");
 }
 
 String getTelegram() {
