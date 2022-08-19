@@ -2,6 +2,7 @@
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <PubSubClient.h>
 #include <Credentials.h>
 
 #ifndef CREDENTIALS_H
@@ -9,6 +10,9 @@
 
 #define WIFI_SSID "not-specified"
 #define WIFI_PW "not-specified"
+#define MQTT_HOST "not-specified"
+#define MQTT_USER "not-specified"
+#define MQTT_PW "not-specified"
 
 #endif
 
@@ -18,6 +22,17 @@ String latestMeterReading;
 String latestActivePower;
 
 ESP8266WebServer server(80);
+const char *mqtt_broker = MQTT_HOST;
+const char *mqtt_user = MQTT_USER;
+const char *mqtt_pass = MQTT_PW;
+const char *mqtt_topic_ap = "electricity/activepower";
+const char *mqtt_topic_mr = "electricity/meterreading";
+const char *restart_topic = "electricity/restart";
+
+const int mqtt_port = 1883;
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void handleRoot();
 void handleRaw();
@@ -28,6 +43,9 @@ String getTelegram();
 String getDateTime(String telegram); // 0-0:1.0.0
 String getMeterReading(String telegram); // 1-0:1.8.0
 String getActualElectricityPowerDelivered(String telegram); // 1-0:1.7.0
+
+const unsigned long millisUntilReset = 10*60*1000; // ten minutes
+unsigned long millisSinceStart;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -41,6 +59,17 @@ void setup() {
       if(notConnectedCounter > 150) {
           ESP.restart();
       }
+  }
+
+  // MQTT
+  client.setServer(mqtt_broker, mqtt_port);
+  while (!client.connected()) {
+    String client_id = "esp8266-electricity-meter";
+    if (client.connect(client_id.c_str(), mqtt_user, mqtt_pass)) {
+      // connected
+    } else {
+      delay(2000);
+    }
   }
 
   server.on("/", handleRoot);
@@ -62,14 +91,19 @@ void loop() {
     latestDateTime = dateTime;
     latestMeterReading = getMeterReading(telegram);
     latestActivePower = getActualElectricityPowerDelivered(telegram);
+
+    client.publish(mqtt_topic_mr, latestMeterReading.c_str());
+    client.publish(mqtt_topic_ap, latestActivePower.c_str());
   }
   server.handleClient();
+
+  millisSinceStart = millis();
+  if (millisSinceStart > millisUntilReset) {
+    ESP.restart();
+  }
 }
 
 void handleRoot() {
-  // String s = "Tidpunkt: " + latestDateTime + "\nMätarställning: " + latestMeterReading + "kWh\nAktiv effekt: " + latestActivePower + "kW";
-  // server.send(200, "text/plain", s);
-
   String result = "{\"time\":" + latestDateTime + ",\"meterReading\":" + latestMeterReading + ",\"activePower\":" + latestActivePower + "}";
   server.send(200, "application/json", result);
 }
