@@ -149,7 +149,7 @@ String getActualElectricityPowerDeliveredL1(String telegram) {
   if (sI < 0) {
     return "";
   }
-  return telegram.substring(sI+10, sI+18);
+  return telegram.substring(sI+11, sI+19);
 }
 
 String getActualElectricityPowerDeliveredL2(String telegram) {
@@ -157,7 +157,7 @@ String getActualElectricityPowerDeliveredL2(String telegram) {
   if (sI < 0) {
     return "";
   }
-  return telegram.substring(sI+10, sI+18);
+  return telegram.substring(sI+11, sI+19);
 }
 
 String getActualElectricityPowerDeliveredL3(String telegram) {
@@ -165,5 +165,5 @@ String getActualElectricityPowerDeliveredL3(String telegram) {
   if (sI < 0) {
     return "";
   }
-  return telegram.substring(sI+10, sI+18);
+  return telegram.substring(sI+11, sI+19);
 }
