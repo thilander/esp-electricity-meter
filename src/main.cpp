@@ -19,11 +19,17 @@ String latestTelegram;
 String latestDateTime;
 String latestMeterReading;
 String latestActivePower;
+String latestActivePowerL1;
+String latestActivePowerL2;
+String latestActivePowerL3;
 
 const char *mqtt_broker = MQTT_HOST;
 const char *mqtt_user = MQTT_USER;
 const char *mqtt_pass = MQTT_PW;
-const char *mqtt_topic_ap = "electricity/activepower";
+const char *mqtt_topic_ap = "electricity/activepower/total";
+const char *mqtt_topic_ap_l1 = "electricity/activepower/l1";
+const char *mqtt_topic_ap_l2 = "electricity/activepower/l2";
+const char *mqtt_topic_ap_l3 = "electricity/activepower/l3";
 const char *mqtt_topic_mr = "electricity/meterreading";
 const char *restart_topic = "electricity/restart";
 
@@ -41,6 +47,9 @@ String getTelegram();
 String getDateTime(String telegram); // 0-0:1.0.0
 String getMeterReading(String telegram); // 1-0:1.8.0
 String getActualElectricityPowerDelivered(String telegram); // 1-0:1.7.0
+String getActualElectricityPowerDeliveredL1(String telegram); // 1-0:21.7.0
+String getActualElectricityPowerDeliveredL2(String telegram); // 1-0:41.7.0
+String getActualElectricityPowerDeliveredL3(String telegram); // 1-0:61.7.0
 
 const unsigned long millisUntilReset = 10*60*1000; // ten minutes
 unsigned long millisSinceStart;
@@ -84,9 +93,15 @@ void loop() {
     latestDateTime = dateTime;
     latestMeterReading = getMeterReading(telegram);
     latestActivePower = getActualElectricityPowerDelivered(telegram);
+    latestActivePowerL1 = getActualElectricityPowerDeliveredL1(telegram);
+    latestActivePowerL2 = getActualElectricityPowerDeliveredL2(telegram);
+    latestActivePowerL3 = getActualElectricityPowerDeliveredL3(telegram);
 
     client.publish(mqtt_topic_mr, latestMeterReading.c_str());
     client.publish(mqtt_topic_ap, latestActivePower.c_str());
+    client.publish(mqtt_topic_ap_l1, latestActivePowerL1.c_str());
+    client.publish(mqtt_topic_ap_l2, latestActivePowerL2.c_str());
+    client.publish(mqtt_topic_ap_l3, latestActivePowerL3.c_str());
   }
 
   millisSinceStart = millis();
@@ -129,3 +144,26 @@ String getActualElectricityPowerDelivered(String telegram) {
   return telegram.substring(sI+10, sI+18);
 }
 
+String getActualElectricityPowerDeliveredL1(String telegram) {
+  int sI = telegram.indexOf("1-0:21.7.0");
+  if (sI < 0) {
+    return "";
+  }
+  return telegram.substring(sI+10, sI+18);
+}
+
+String getActualElectricityPowerDeliveredL2(String telegram) {
+  int sI = telegram.indexOf("1-0:41.7.0");
+  if (sI < 0) {
+    return "";
+  }
+  return telegram.substring(sI+10, sI+18);
+}
+
+String getActualElectricityPowerDeliveredL3(String telegram) {
+  int sI = telegram.indexOf("1-0:61.7.0");
+  if (sI < 0) {
+    return "";
+  }
+  return telegram.substring(sI+10, sI+18);
+}
