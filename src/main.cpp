@@ -10,6 +10,7 @@
 #define WIFI_SSID "not-specified"
 #define WIFI_PW "not-specified"
 #define MQTT_HOST "not-specified"
+#define MQTT_PORT 1337
 #define MQTT_USER "not-specified"
 #define MQTT_PW "not-specified"
 
@@ -26,6 +27,7 @@ String latestActivePowerL3;
 const char *mqtt_broker = MQTT_HOST;
 const char *mqtt_user = MQTT_USER;
 const char *mqtt_pass = MQTT_PW;
+const int mqtt_port = MQTT_PORT;
 const char *mqtt_topic_ap = "electricity/activepower/total";
 const char *mqtt_topic_ap_l1 = "electricity/activepower/l1";
 const char *mqtt_topic_ap_l2 = "electricity/activepower/l2";
@@ -33,15 +35,8 @@ const char *mqtt_topic_ap_l3 = "electricity/activepower/l3";
 const char *mqtt_topic_mr = "electricity/meterreading";
 const char *restart_topic = "electricity/restart";
 
-const int mqtt_port = 1883;
-
 WiFiClient espClient;
 PubSubClient client(espClient);
-
-void handleRoot();
-void handleRaw();
-void handleMeterReading();
-void handleActivePower();
 
 String getTelegram();
 String getDateTime(String telegram); // 0-0:1.0.0
@@ -67,7 +62,6 @@ void setup() {
           ESP.restart();
       }
   }
-
   // MQTT
   client.setServer(mqtt_broker, mqtt_port);
   while (!client.connected()) {
