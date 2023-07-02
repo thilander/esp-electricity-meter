@@ -5,12 +5,12 @@ Reads various values from the P1 port on (swedish) electricity meters, in order 
 Publishes these values on an mqtt queue over WiFi.
 The device is powered through the P1 port, so no battery/external power is needed except for plugging in the RJ12 connector.
 
-Credentials for WiFi / MQTT broker should be put in Credentials.h file.
+Credentials for WiFi / MQTT broker should be put in Credentials.h file (include/Credentials.h)
 
 ```
 #define WIFI_SSID "not-specified"
 #define WIFI_PW "not-specified"
-#define MQTT_HOST "not-specified"
+#define MQTT_HOST "192,168.xx.yy"
 #define MQTT_PORT 1337
 #define MQTT_USER "not-specified"
 #define MQTT_PW "not-specified"
