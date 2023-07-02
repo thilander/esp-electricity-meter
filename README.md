@@ -8,6 +8,7 @@ The device is powered through the P1 port, so no battery/external power is neede
 Credentials for WiFi / MQTT broker should be put in Credentials.h file (include/Credentials.h)
 
 ```
+#define CREDENTIALS_H
 #define WIFI_SSID "not-specified"
 #define WIFI_PW "not-specified"
 #define MQTT_HOST "192,168.xx.yy"

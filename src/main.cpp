@@ -33,7 +33,8 @@ const char *mqtt_topic_ap_l1 = "electricity/activepower/l1";
 const char *mqtt_topic_ap_l2 = "electricity/activepower/l2";
 const char *mqtt_topic_ap_l3 = "electricity/activepower/l3";
 const char *mqtt_topic_mr = "electricity/meterreading";
-const char *restart_topic = "electricity/restart";
+const char *mqtt_restart_topic = "electricity/restart";
+const char *mqtt_ping_topic = "electricity/ping";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -48,6 +49,7 @@ String getActualElectricityPowerDeliveredL3(String telegram); // 1-0:61.7.0
 
 const unsigned long millisUntilReset = 10*60*1000; // ten minutes
 unsigned long millisSinceStart;
+unsigned long lastPingMillis;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -72,7 +74,7 @@ void setup() {
       delay(2000);
     }
   }
-
+  lastPingMillis = millis();
   ArduinoOTA.begin();
 }
 
@@ -101,6 +103,11 @@ void loop() {
   millisSinceStart = millis();
   if (millisSinceStart > millisUntilReset) {
     ESP.restart();
+  }
+
+  if (millisSinceStart - lastPingMillis > 10000) {
+    lastPingMillis = millisSinceStart;
+    client.publish(mqtt_ping_topic, "ping");
   }
 }
 
